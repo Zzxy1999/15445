@@ -24,8 +24,25 @@ namespace bustub {
  */
 template <class T>
 auto Trie::Get(std::string_view key) const -> const T * {
-  throw NotImplementedException("Trie::Get is not implemented.");
+  if (root_ == nullptr) {
+    return nullptr;
+  }
 
+  auto node = root_;
+  for (auto c : key) {
+    auto iter = node->children_.find(c);
+    if (iter != node->children_.end()) {
+      node = iter->second;
+    } else {
+      return nullptr;
+    }
+  }
+
+  if (node->is_value_node_ == true) {
+    return std::dynamic_pointer_cast<const TrieNodeWithValue<T>>(node)->value_.get();
+  } else {
+    return nullptr;
+  }
   // You should walk through the trie to find the node corresponding to the key. If the node doesn't exist, return
   // nullptr. After you find the node, you should use `dynamic_cast` to cast it to `const TrieNodeWithValue<T> *`. If
   // dynamic_cast returns `nullptr`, it means the type of the value is mismatched, and you should return nullptr.
@@ -38,8 +55,24 @@ auto Trie::Get(std::string_view key) const -> const T * {
  */
 template <class T>
 auto Trie::Put(std::string_view key, T value) const -> Trie {
+  auto root = root_;
+  if (root == nullptr) {
+    root = std::make_shared<const TrieNode>();
+  }
+
+  auto node = root_;
+  auto pre = node;
+  for (auto c : key) {
+    if (node->children_.find(c) == node->children_.end()) {
+      node->children_.insert(c, std::make_shared<const TrieNode>());
+    }
+    pre = node;
+    node = node->children_.find(c)->second;
+  }
+
+  return Trie(root);
+
   // Note that `T` might be a non-copyable type. Always use `std::move` when creating `shared_ptr` on that value.
-  throw NotImplementedException("Trie::Put is not implemented.");
 
   // You should walk through the trie and create new nodes if necessary. If the node corresponding to the key already
   // exists, you should create a new `TrieNodeWithValue`.
